@@ -64,7 +64,7 @@ void *__Result_expect(const char *file, int line, Result self, const char *forma
     if (Result_isError(self)) {
         va_list args;
         va_start(args, format);
-        __panic_variadic(file, line, format, args);
+        __Panic_vabort(file, line, format, args);
     }
     return self.__value;
 }

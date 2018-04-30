@@ -83,7 +83,7 @@ typedef struct __Error {
 /**
  * Gets the error message explanation.
  *
- * @param self The error instance <b>must not be NULL<B>.
+ * @param self The error instance <b>must not be NULL</b>.
  * @return The error message.
  */
 extern const char *
