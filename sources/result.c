@@ -39,7 +39,7 @@ const char *Result_version(void) {
     return STR(RESULT_VERSION_MAJOR) "." STR(RESULT_VERSION_MINOR) "." STR(RESULT_VERSION_PATCH) RESULT_VERSION_SUFFIX;
 }
 
-Result Result_ok(void *value) {
+Result Result_ok(void *const value) {
     assert(value);
     return (Result) {.__value=value, .__error=Ok};
 }
@@ -50,15 +50,15 @@ Result Result_error(Error error) {
     return (Result) {.__value=NULL, .__error=error};
 }
 
-bool Result_isOk(Result self) {
+bool Result_isOk(const Result self) {
     return Ok == self.__error;
 }
 
-bool Result_isError(Result self) {
+bool Result_isError(const Result self) {
     return Ok != self.__error;
 }
 
-void *__Result_expect(const char *file, int line, Result self, const char *format, ...) {
+void *__Result_expect(const char *const file, const int line, const Result self, const char *const format, ...) {
     assert(file);
     assert(format);
     if (Result_isError(self)) {
@@ -69,15 +69,15 @@ void *__Result_expect(const char *file, int line, Result self, const char *forma
     return self.__value;
 }
 
-void *__Result_unwrap(const char *file, int line, Result self) {
+void *__Result_unwrap(const char *const file, const int line, const Result self) {
     assert(file);
     return __Result_expect(file, line, self, "Error: %s.\n", self.__error->__message);
 }
 
-Error Result_inspect(Result self) {
+Error Result_inspect(const Result self) {
     return self.__error;
 }
 
-const char *Result_explain(Result self) {
+const char *Result_explain(const Result self) {
     return self.__error->__message;
 }
