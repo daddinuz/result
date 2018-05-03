@@ -29,7 +29,7 @@
 #include <assert.h>
 #include "error.h"
 
-#define _STR(x)    #x
+#define _STR(x)     #x
 #define STR(x)      _STR(x)
 
 const char *Error_version(void) {
@@ -42,3 +42,4 @@ const char *Error_explain(Error self) {
 }
 
 const Error Ok = Error_new("Ok");
+const Error OutOfMemory = Error_new("Out of memory");

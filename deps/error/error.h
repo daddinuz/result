@@ -38,10 +38,10 @@ extern "C" {
 
 #define ERROR_VERSION_MAJOR       0
 #define ERROR_VERSION_MINOR       1
-#define ERROR_VERSION_PATCH       0
+#define ERROR_VERSION_PATCH       1
 #define ERROR_VERSION_SUFFIX      ""
 #define ERROR_VERSION_IS_RELEASE  0
-#define ERROR_VERSION_HEX         0x000100
+#define ERROR_VERSION_HEX         0x000101
 
 /**
  * @return The semantic versioning string of the package.
@@ -94,6 +94,11 @@ __attribute__((__warn_unused_result__, __nonnull__));
  * The Ok Error instance to notify a successful execution.
  */
 extern const Error Ok;
+
+/**
+ * Some error instances
+ */
+extern const Error OutOfMemory;
 
 #ifdef __cplusplus
 }
