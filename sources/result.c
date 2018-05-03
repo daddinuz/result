@@ -32,7 +32,7 @@
 #include <panic/panic.h>
 #include "result.h"
 
-#define _STR(x)    #x
+#define _STR(x)     #x
 #define STR(x)      _STR(x)
 
 const char *Result_version(void) {

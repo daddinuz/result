@@ -41,10 +41,10 @@ extern "C" {
 
 #define RESULT_VERSION_MAJOR       0
 #define RESULT_VERSION_MINOR       1
-#define RESULT_VERSION_PATCH       0
+#define RESULT_VERSION_PATCH       1
 #define RESULT_VERSION_SUFFIX      ""
 #define RESULT_VERSION_IS_RELEASE  0
-#define RESULT_VERSION_HEX         0x000100
+#define RESULT_VERSION_HEX         0x000101
 
 /**
  * @return The semantic versioning string of the package.

@@ -32,17 +32,16 @@
 #include <assert.h>
 #include <result.h>
 
-const Error OutOfMemoryError = Error_new("Out of memory");
-const Error TooLongError = Error_new("Too long");
+const Error StringTooLong = Error_new("Too long");
 
-ResultOf(char *, OutOfMemoryError, TooLongError) SmallString_new(const char *literal) {
+ResultOf(char *, OutOfMemoryError, StringTooLong) SmallString_new(const char *literal) {
     assert(literal);
     char *temporary;
     if (strlen(literal) > 32) {
-        return Result_error(TooLongError);
+        return Result_error(StringTooLong);
     }
     if (!(temporary = strdup(literal))) {
-        return Result_error(OutOfMemoryError);
+        return Result_error(OutOfMemory);
     }
     return Result_ok(temporary);
 }
