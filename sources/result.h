@@ -40,17 +40,16 @@ extern "C" {
 #endif
 
 #define RESULT_VERSION_MAJOR       0
-#define RESULT_VERSION_MINOR       1
-#define RESULT_VERSION_PATCH       1
+#define RESULT_VERSION_MINOR       2
+#define RESULT_VERSION_PATCH       0
 #define RESULT_VERSION_SUFFIX      ""
 #define RESULT_VERSION_IS_RELEASE  0
-#define RESULT_VERSION_HEX         0x000101
+#define RESULT_VERSION_HEX         0x000200
 
 /**
  * @return The semantic versioning string of the package.
  */
-extern const char *
-Result_version(void)
+extern const char *Result_version(void)
 __attribute__((__warn_unused_result__));
 
 /**
@@ -79,8 +78,7 @@ typedef struct __Result {
  * @param value The result value <b>must not be NULL</b>.
  * @return A new Result instance wrapping value.
  */
-extern Result
-Result_ok(void *value)
+extern Result Result_ok(void *value)
 __attribute__((__warn_unused_result__, __nonnull__));
 
 /**
@@ -89,8 +87,7 @@ __attribute__((__warn_unused_result__, __nonnull__));
  * @param error The Error instance <b>must not be Ok</b>.
  * @return A new Result instance wrapping an error.
  */
-extern Result
-Result_error(Error error)
+extern Result Result_error(Error error)
 __attribute__((__warn_unused_result__, __nonnull__));
 
 /**
@@ -99,8 +96,7 @@ __attribute__((__warn_unused_result__, __nonnull__));
  * @param self The Result instance.
  * @return true if Result is Ok else false.
  */
-extern bool
-Result_isOk(Result self)
+extern bool Result_isOk(Result self)
 __attribute__((__warn_unused_result__));
 
 /**
@@ -109,8 +105,7 @@ __attribute__((__warn_unused_result__));
  * @param self The Result instance.
  * @return true if Result is Error else false.
  */
-extern bool
-Result_isError(Result self)
+extern bool Result_isError(Result self)
 __attribute__((__warn_unused_result__));
 
 /**
@@ -127,8 +122,7 @@ __attribute__((__warn_unused_result__));
  * @param ... The format params.
  * @return The unwrapped value or terminates the execution.
  */
-extern void *
-__Result_expect(const char *file, int line, Result self, const char *format, ...)
+extern void *__Result_expect(const char *file, int line, Result self, const char *format, ...)
 __attribute__((__warn_unused_result__, __nonnull__, __format__(__printf__, 4, 5)));
 
 /**
@@ -149,8 +143,7 @@ __attribute__((__warn_unused_result__, __nonnull__, __format__(__printf__, 4, 5)
  * @param self The Result instance.
  * @return The unwrapped value or terminates the execution.
  */
-extern void *
-__Result_unwrap(const char *file, int line, Result self)
+extern void *__Result_unwrap(const char *file, int line, Result self)
 __attribute__((__warn_unused_result__, __nonnull__(1)));
 
 /**
@@ -165,8 +158,7 @@ __attribute__((__warn_unused_result__, __nonnull__(1)));
  * @param self The Result instance.
  * @return The Error associated to the result.
  */
-extern Error
-Result_inspect(Result self)
+extern Error Result_inspect(Result self)
 __attribute__((__warn_unused_result__));
 
 /**
@@ -176,8 +168,7 @@ __attribute__((__warn_unused_result__));
  * @param self The Result instance.
  * @return The error explanation.
  */
-extern const char *
-Result_explain(Result self)
+extern const char *Result_explain(Result self)
 __attribute__((__warn_unused_result__));
 
 #ifdef __cplusplus
