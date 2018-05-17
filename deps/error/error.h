@@ -37,18 +37,11 @@ extern "C" {
 #endif
 
 #define ERROR_VERSION_MAJOR       0
-#define ERROR_VERSION_MINOR       1
-#define ERROR_VERSION_PATCH       1
+#define ERROR_VERSION_MINOR       2
+#define ERROR_VERSION_PATCH       0
 #define ERROR_VERSION_SUFFIX      ""
 #define ERROR_VERSION_IS_RELEASE  0
-#define ERROR_VERSION_HEX         0x000101
-
-/**
- * @return The semantic versioning string of the package.
- */
-extern const char *
-Error_version(void)
-__attribute__((__warn_unused_result__));
+#define ERROR_VERSION_HEX         0x000200
 
 /**
  * Represents errors that may occur at runtime.

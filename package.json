@@ -1,7 +1,7 @@
 {
   "name": "result",
   "repo": "daddinuz/result",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "MIT",
   "description": "Result type resembling Rust's Result.",
   "keywords": [
@@ -13,8 +13,8 @@
     "sources/result.c"
   ],
   "dependencies": {
-    "daddinuz/error": "0.1.1",
-    "daddinuz/panic": "0.2.0"
+    "daddinuz/error": "0.2.0",
+    "daddinuz/panic": "0.3.0"
   },
-  "makefile": "result.cmake"
+  "makefile": "sources/build.cmake"
 }

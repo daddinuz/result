@@ -32,13 +32,6 @@
 #include <panic/panic.h>
 #include "result.h"
 
-#define _STR(x)     #x
-#define STR(x)      _STR(x)
-
-const char *Result_version(void) {
-    return STR(RESULT_VERSION_MAJOR) "." STR(RESULT_VERSION_MINOR) "." STR(RESULT_VERSION_PATCH) RESULT_VERSION_SUFFIX;
-}
-
 Result Result_ok(void *const value) {
     assert(value);
     return (Result) {.__value=value, .__error=Ok};

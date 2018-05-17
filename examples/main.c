@@ -47,7 +47,7 @@ ResultOf(char *, OutOfMemoryError, StringTooLong) SmallString_new(const char *li
 }
 
 int main() {
-    Result result = SmallString_new(Result_version());
+    Result result = SmallString_new("Hello world!");
 
     if (Result_isOk(result)) {
         char *smallString = Result_unwrap(result);

@@ -1,7 +1,7 @@
 {
   "name": "error",
   "repo": "daddinuz/error",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "license": "MIT",
   "description": "Error representation.",
   "keywords": [
@@ -12,5 +12,5 @@
     "sources/error.h",
     "sources/error.c"
   ],
-  "makefile": "error.cmake"
+  "makefile": "sources/build.cmake"
 }

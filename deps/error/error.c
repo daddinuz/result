@@ -29,13 +29,6 @@
 #include <assert.h>
 #include "error.h"
 
-#define _STR(x)     #x
-#define STR(x)      _STR(x)
-
-const char *Error_version(void) {
-    return STR(ERROR_VERSION_MAJOR) "." STR(ERROR_VERSION_MINOR) "." STR(ERROR_VERSION_PATCH) ERROR_VERSION_SUFFIX;
-}
-
 const char *Error_explain(Error self) {
     assert(self);
     return self->__message;

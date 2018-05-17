@@ -40,17 +40,11 @@ extern "C" {
 #endif
 
 #define RESULT_VERSION_MAJOR       0
-#define RESULT_VERSION_MINOR       2
+#define RESULT_VERSION_MINOR       3
 #define RESULT_VERSION_PATCH       0
 #define RESULT_VERSION_SUFFIX      ""
 #define RESULT_VERSION_IS_RELEASE  0
-#define RESULT_VERSION_HEX         0x000200
-
-/**
- * @return The semantic versioning string of the package.
- */
-extern const char *Result_version(void)
-__attribute__((__warn_unused_result__));
+#define RESULT_VERSION_HEX         0x000300
 
 /**
  * Result holds a returned value or an error code providing a way of handling errors, without resorting to exception
