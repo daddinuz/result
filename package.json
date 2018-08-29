@@ -1,19 +1,19 @@
 {
   "name": "result",
   "repo": "daddinuz/result",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "MIT",
   "description": "Result type resembling Rust's Result.",
   "keywords": [
-    "Error Handling",
-    "Result"
+    "error-handling",
+    "result-type"
   ],
   "src": [
     "sources/result.h",
     "sources/result.c"
   ],
   "dependencies": {
-    "daddinuz/error": "0.2.0",
+    "daddinuz/error": "0.3.0",
     "daddinuz/panic": "0.3.0"
   },
   "makefile": "sources/build.cmake"

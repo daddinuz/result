@@ -32,39 +32,51 @@
 #include <panic/panic.h>
 #include "result.h"
 
-Result Result_ok(void *const value) {
-    assert(value);
-    return (Result) {.__value=value, .__error=Ok};
-}
-
 Result Result_error(Error error) {
-    assert(error);
+    assert(NULL != error);
     assert(Ok != error);
-    return (Result) {.__value=NULL, .__error=error};
+    return (Result) {.__error=error, .__value=NULL};
 }
 
-bool Result_isOk(const Result self) {
-    return Ok == self.__error;
+Result Result_ok(void *const value) {
+    return (Result) {.__error=Ok, .__value=value};
 }
 
 bool Result_isError(const Result self) {
     return Ok != self.__error;
 }
 
-void *__Result_expect(const char *const file, const int line, const Result self, const char *const format, ...) {
-    assert(file);
-    assert(format);
-    if (Result_isError(self)) {
-        va_list args;
-        va_start(args, format);
-        __Panic_vterminate(file, line, format, args);
-    }
-    return self.__value;
+bool Result_isOk(const Result self) {
+    return Ok == self.__error;
 }
 
-void *__Result_unwrap(const char *const file, const int line, const Result self) {
-    assert(file);
-    return __Result_expect(file, line, self, "Error: %s.\n", self.__error->__message);
+Result Result_map(const Result self, Result (*const f)(void *)) {
+    assert(NULL != f);
+    return Result_isError(self) ? self : f(Result_unwrap(self));
+}
+
+Result Result_alt(const Result self, const Result a) {
+    return Result_isError(self) ? a : self;
+}
+
+Result Result_chain(const Result self, Result (*const f)(void *)) {
+    assert(NULL != f);
+    return Result_isError(self) ? self : f(Result_unwrap(self));
+}
+
+void *Result_fold(const Result self, void *(*const whenError)(Error), void *(*const whenOk)(void *)) {
+    assert(NULL != whenError);
+    assert(NULL != whenOk);
+    return Result_isError(self) ? whenError(self.__error) : whenOk(Result_unwrap(self));
+}
+
+void *Result_getOr(const Result self, void *const defaultValue) {
+    return Result_isError(self) ? defaultValue : Result_unwrap(self);
+}
+
+void *Result_getOrElse(const Result self, void *(*const f)(void)) {
+    assert(NULL != f);
+    return Result_isError(self) ? f() : Result_unwrap(self);
 }
 
 Error Result_inspect(const Result self) {
@@ -73,4 +85,25 @@ Error Result_inspect(const Result self) {
 
 const char *Result_explain(const Result self) {
     return self.__error->__message;
+}
+
+void *__Result_unwrap(const char *const file, const int line, const Result self) {
+    assert(NULL != file);
+    assert(line > 0);
+    if (Result_isError(self)) {
+        __Panic_terminate(file, line, "%s", self.__error->__message);
+    }
+    return self.__value;
+}
+
+void *__Result_expect(const char *const file, const int line, const Result self, const char *const format, ...) {
+    assert(NULL != file);
+    assert(line > 0);
+    assert(NULL != format);
+    if (Result_isError(self)) {
+        va_list args;
+        va_start(args, format);
+        __Panic_vterminate(file, line, format, args);
+    }
+    return self.__value;
 }
