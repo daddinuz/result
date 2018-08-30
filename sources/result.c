@@ -32,14 +32,97 @@
 #include <panic/panic.h>
 #include "result.h"
 
+ResultView ResultView_error(Error error) {
+    assert(NULL != error);
+    assert(Ok != error);
+    return (ResultView) {.__error=error, .__value=NULL};
+}
+
+ResultView ResultView_ok(const ResultView_Value value) {
+    return (ResultView) {.__error=Ok, .__value=value};
+}
+
+bool ResultView_isError(const ResultView self) {
+    return Ok != self.__error;
+}
+
+bool ResultView_isOk(const ResultView self) {
+    return Ok == self.__error;
+}
+
+ResultView ResultView_map(const ResultView self, ResultView (*const f)(ResultView_Value)) {
+    assert(NULL != f);
+    return ResultView_isError(self) ? self : f(ResultView_unwrap(self));
+}
+
+ResultView ResultView_alt(const ResultView self, const ResultView a) {
+    return ResultView_isError(self) ? a : self;
+}
+
+ResultView ResultView_chain(const ResultView self, ResultView (*const f)(ResultView_Value)) {
+    assert(NULL != f);
+    return ResultView_isError(self) ? self : f(ResultView_unwrap(self));
+}
+
+ResultView_Value
+ResultView_fold(const ResultView self, ResultView_Value (*const whenError)(Error),
+                ResultView_Value (*const whenOk)(ResultView_Value)) {
+    assert(NULL != whenError);
+    assert(NULL != whenOk);
+    return ResultView_isError(self) ? whenError(self.__error) : whenOk(ResultView_unwrap(self));
+}
+
+ResultView_Value ResultView_getOr(const ResultView self, const ResultView_Value defaultValue) {
+    return ResultView_isError(self) ? defaultValue : ResultView_unwrap(self);
+}
+
+ResultView_Value ResultView_getOrElse(const ResultView self, ResultView_Value (*const f)(void)) {
+    assert(NULL != f);
+    return ResultView_isError(self) ? f() : ResultView_unwrap(self);
+}
+
+Error ResultView_inspect(const ResultView self) {
+    return self.__error;
+}
+
+const char *ResultView_explain(const ResultView self) {
+    return self.__error->__message;
+}
+
+ResultView_Value __ResultView_unwrap(const char *const file, const int line, const ResultView self) {
+    assert(NULL != file);
+    assert(line > 0);
+    if (ResultView_isError(self)) {
+        __Panic_terminate(file, line, "%s", self.__error->__message);
+    }
+    return self.__value;
+}
+
+ResultView_Value
+__ResultView_expect(const char *const file, const int line, const ResultView self, const char *const format, ...) {
+    assert(NULL != file);
+    assert(line > 0);
+    assert(NULL != format);
+    if (ResultView_isError(self)) {
+        va_list args;
+        va_start(args, format);
+        __Panic_vterminate(file, line, format, args);
+    }
+    return self.__value;
+}
+
 Result Result_error(Error error) {
     assert(NULL != error);
     assert(Ok != error);
     return (Result) {.__error=error, .__value=NULL};
 }
 
-Result Result_ok(void *const value) {
+Result Result_ok(const Result_Value value) {
     return (Result) {.__error=Ok, .__value=value};
+}
+
+ResultView Result_toView(Result self) {
+    return (ResultView) {.__error=self.__error, .__value=self.__value};
 }
 
 bool Result_isError(const Result self) {
@@ -50,7 +133,7 @@ bool Result_isOk(const Result self) {
     return Ok == self.__error;
 }
 
-Result Result_map(const Result self, Result (*const f)(void *)) {
+Result Result_map(const Result self, Result (*const f)(Result_Value)) {
     assert(NULL != f);
     return Result_isError(self) ? self : f(Result_unwrap(self));
 }
@@ -59,22 +142,23 @@ Result Result_alt(const Result self, const Result a) {
     return Result_isError(self) ? a : self;
 }
 
-Result Result_chain(const Result self, Result (*const f)(void *)) {
+Result Result_chain(const Result self, Result (*const f)(Result_Value)) {
     assert(NULL != f);
     return Result_isError(self) ? self : f(Result_unwrap(self));
 }
 
-void *Result_fold(const Result self, void *(*const whenError)(Error), void *(*const whenOk)(void *)) {
+Result_Value
+Result_fold(const Result self, Result_Value (*const whenError)(Error), Result_Value (*const whenOk)(Result_Value)) {
     assert(NULL != whenError);
     assert(NULL != whenOk);
     return Result_isError(self) ? whenError(self.__error) : whenOk(Result_unwrap(self));
 }
 
-void *Result_getOr(const Result self, void *const defaultValue) {
+Result_Value Result_getOr(const Result self, const Result_Value defaultValue) {
     return Result_isError(self) ? defaultValue : Result_unwrap(self);
 }
 
-void *Result_getOrElse(const Result self, void *(*const f)(void)) {
+Result_Value Result_getOrElse(const Result self, Result_Value (*const f)(void)) {
     assert(NULL != f);
     return Result_isError(self) ? f() : Result_unwrap(self);
 }
@@ -87,7 +171,7 @@ const char *Result_explain(const Result self) {
     return self.__error->__message;
 }
 
-void *__Result_unwrap(const char *const file, const int line, const Result self) {
+Result_Value __Result_unwrap(const char *const file, const int line, const Result self) {
     assert(NULL != file);
     assert(line > 0);
     if (Result_isError(self)) {
@@ -96,7 +180,7 @@ void *__Result_unwrap(const char *const file, const int line, const Result self)
     return self.__value;
 }
 
-void *__Result_expect(const char *const file, const int line, const Result self, const char *const format, ...) {
+Result_Value __Result_expect(const char *const file, const int line, const Result self, const char *const format, ...) {
     assert(NULL != file);
     assert(line > 0);
     assert(NULL != format);
