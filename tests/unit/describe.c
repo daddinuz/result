@@ -25,22 +25,19 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <assert.h>
-#include <stddef.h>
-#include "error.h"
+#include "features.h"
+#include <traits-unit/traits-unit.h>
 
-const char *Error_explain(Error self) {
-    assert(NULL != self);
-    return self->__message;
-}
-
-Error Ok = Error_new("Ok");
-Error DomainError = Error_new("Domain error");
-Error IllegalState = Error_new("Illegal state");
-Error LookupError = Error_new("Lookup error");
-Error MathError = Error_new("Math error");
-Error MemoryError = Error_new("Memory error");
-Error NullReferenceError = Error_new("Null reference error");
-Error OutOfMemory = Error_new("Out of memory");
-Error SystemError = Error_new("System error");
-Error StopIteration = Error_new("Stop iteration");
+Describe("Result",
+         Trait("",
+               Run(Result_error),
+               Run(Result_ok),
+               Run(Result_fromNullable),
+               Run(Result_map),
+               Run(Result_chain),
+               Run(Result_alt),
+               Run(Result_orElse),
+               Run(Result_unwrap),
+               Run(Result_unwrapAsMutable),
+               Run(Result_expect),
+               Run(Result_expectAsMutable)))

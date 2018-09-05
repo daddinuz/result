@@ -25,22 +25,30 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <assert.h>
-#include <stddef.h>
-#include "error.h"
+#pragma once
 
-const char *Error_explain(Error self) {
-    assert(NULL != self);
-    return self->__message;
+#include <traits-unit/traits-unit.h>
+
+#if !(defined(__GNUC__) || defined(__clang__))
+__attribute__(...)
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Feature(Result_error);
+Feature(Result_ok);
+Feature(Result_fromNullable);
+Feature(Result_map);
+Feature(Result_chain);
+Feature(Result_alt);
+Feature(Result_orElse);
+Feature(Result_unwrap);
+Feature(Result_unwrapAsMutable);
+Feature(Result_expect);
+Feature(Result_expectAsMutable);
+
+#ifdef __cplusplus
 }
-
-Error Ok = Error_new("Ok");
-Error DomainError = Error_new("Domain error");
-Error IllegalState = Error_new("Illegal state");
-Error LookupError = Error_new("Lookup error");
-Error MathError = Error_new("Math error");
-Error MemoryError = Error_new("Memory error");
-Error NullReferenceError = Error_new("Null reference error");
-Error OutOfMemory = Error_new("Out of memory");
-Error SystemError = Error_new("System error");
-Error StopIteration = Error_new("Stop iteration");
+#endif
