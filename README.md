@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.org/daddinuz/result.svg?branch=master)](https://travis-ci.org/daddinuz/result)
 
-Trying to resemble Rust's Result type in C.
+Result holds a returned value or an error providing a way of handling errors, without resorting to exception handling; 
+when a function that may fail returns a result type, the programmer is forced to consider success or failure paths, 
+before getting access to the expected result; this eliminates the possibility of an erroneous programmer assumption.
 
 ```c
 
