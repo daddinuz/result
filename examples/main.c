@@ -28,42 +28,53 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <math.h>
 #include <stdio.h>
 #include <result.h>
-#include <stdlib.h>
+#include <assert.h>
 
-ResultOf(double *, MathError) divide(double *out, const double n) {
-    if (0 == n) {
-        return Result_error(MathError);
-    }
-    *out = *out / n;
-    return Result_ok(out);
+typedef const double *Number;
+
+static Number Number_new(double number);
+
+static Number zero(void);
+static Number cube(Number number);
+static ResultOf(Number, DomainError) division(Number dividend, Number divisor);
+static ResultOf(Number, DomainError) squareRoot(Number number);
+
+int main() {
+    Number number = Result_unwrap(
+            Result_alt(
+                    Result_map(Result_chain(division(Number_new(36), Number_new(4)), squareRoot), cube),
+                    Result_ok(zero())
+            )
+    );
+    printf("Number is: %f\n", *number);
+    return 0;
 }
 
-ResultOf(double *, DomainError) squareRoot(void *out) {
-    double *number = out;
-    if (*number < 0) {
-        return Result_error(DomainError);
-    } else {
-        *number = sqrt(*number);
-        return Result_ok(number);
-    }
+/*
+ *
+ */
+static double numbers[4] = {};
+static double *numbersCursor = numbers;
+static const double *numbersEnd = numbers + sizeof(numbers) / sizeof(numbers[0]);
+
+Number Number_new(const double number) {
+    assert(numbersCursor <= numbersEnd);
+    return (*zero() == number) ? zero() : (*numbersCursor = number, numbersCursor++);
 }
 
-void *square(void *out) {
-    double *number = out;
-    *number = (*number) * (*number);
-    return out;
-}
-
-void *zero(Error error) {
-    (void) error;
-    static double instance = 0;
-    instance = 0;
+Number zero(void) {
+    static const double instance = 0;
     return &instance;
 }
 
-int main() {
-    double number = 20;
-    number = *(double *) Result_fold(Result_chain(divide(&number, -5), squareRoot), zero, square);
-    printf("Result: %f\n", number);
-    return 0;
+Number cube(Number number) {
+    return Number_new(pow(*number, 3));
+}
+
+Result division(Number dividend, Number divisor) {
+    return *divisor == 0.0 ? Result_error(DomainError) : Result_ok(Number_new(*dividend / *divisor));
+}
+
+Result squareRoot(Number number) {
+    return *number < 0.0 ? Result_error(DomainError) : Result_ok(Number_new(sqrt(*number)));
 }
