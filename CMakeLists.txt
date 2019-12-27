@@ -16,4 +16,4 @@ include_directories(sources)
 include(examples/build.cmake)
 
 # tests
-# include(tests/unit/build.cmake)
+include(tests/unit/build.cmake)
