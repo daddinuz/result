@@ -17,6 +17,5 @@
   "development": {
     "daddinuz/traits": "4.0.1",
     "daddinuz/traits-unit": "4.0.2"
-  },
-  "makefile": "sources/build.cmake"
+  }
 }
