@@ -39,6 +39,10 @@ extern "C" {
 #define __attribute__(...)
 #endif
 
+// internal use only, must not be used directly.
+#define __RESULT_OK_TAG    0xA5
+#define __RESULT_ERR_TAG   0x5A
+
 /**
  * Result holds a returned value or an error providing a way of handling errors, without resorting to exception
  * handling; when a function that may fail returns a result type, the programmer is forced to consider success or failure
@@ -54,7 +58,7 @@ extern "C" {
  * @attention the struct must be treated as opaque therefore its members must not be accessed directly, use the generated functions instead.
  */
 #define ResultDeclare(NewType, Err, Ok)                                                                                 \
-    struct NewType { union { Err __err; Ok __ok; }; int __tag; };                                                       \
+    struct NewType { union { Err __err; Ok __ok; }; unsigned char __tag; };                                             \
     \
     extern struct NewType NewType##_ok(Ok ok)                                                                           \
     __attribute__((__warn_unused_result__));                                                                            \
@@ -89,39 +93,39 @@ extern "C" {
  */
 #define ResultDefine(NewType, Err, Ok)                                                                                  \
     struct NewType NewType##_ok(Ok ok) {                                                                                \
-        return (struct NewType) { .__ok = ok, .__tag = 1 };                                                             \
+        return (struct NewType) { .__ok = ok, .__tag = __RESULT_OK_TAG };                                               \
     }                                                                                                                   \
     \
     struct NewType NewType##_err(Err err) {                                                                             \
-        return (struct NewType) { .__err = err, .__tag = 0 };                                                           \
+        return (struct NewType) { .__err = err, .__tag = __RESULT_ERR_TAG };                                            \
     }                                                                                                                   \
     \
     bool NewType##_isOk(const struct NewType self) {                                                                    \
-        return 1 == self.__tag;                                                                                         \
+        return __RESULT_OK_TAG == self.__tag;                                                                           \
     }                                                                                                                   \
     \
     bool NewType##_isErr(const struct NewType self) {                                                                   \
-        return 0 == self.__tag;                                                                                         \
+        return __RESULT_ERR_TAG == self.__tag;                                                                          \
     }                                                                                                                   \
     \
     Ok NewType##_unwrap(const struct NewType self) {                                                                    \
-        if (1 == self.__tag)    { return self.__ok; }                                                                   \
-        else                    { panic("unable to unwrap value"); }                                                    \
+        if (__RESULT_OK_TAG == self.__tag) { return self.__ok; }                                                        \
+        else                               { panic("unable to unwrap value"); }                                         \
     }                                                                                                                   \
     \
     Ok NewType##_expect(const struct NewType self, const char *const fmt, ...) {                                        \
-        if (1 == self.__tag)    { return self.__ok; }                                                                   \
-        else                    { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }                  \
+        if (__RESULT_OK_TAG == self.__tag) { return self.__ok; }                                                        \
+        else                               { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }       \
     }                                                                                                                   \
     \
     Err NewType##_unwrapErr(const struct NewType self) {                                                                \
-        if (0 == self.__tag)    { return self.__err; }                                                                  \
-        else                    { panic("unable to unwrap error"); };                                                   \
+        if (__RESULT_ERR_TAG == self.__tag) { return self.__err; }                                                      \
+        else                                { panic("unable to unwrap error"); };                                       \
     }                                                                                                                   \
     \
     Err NewType##_expectErr(const struct NewType self, const char *const fmt, ...) {                                    \
-        if (0 == self.__tag)    { return self.__err; }                                                                  \
-        else                    { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }                  \
+        if (__RESULT_ERR_TAG == self.__tag) { return self.__err; }                                                      \
+        else                                { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }      \
     }
 
 #ifdef __cplusplus
