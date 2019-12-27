@@ -1,49 +1,43 @@
 /*
-Author: daddinuz
-email:  daddinuz@gmail.com
-
-Copyright (c) 2018 Davide Di Carlo
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2019 Davide Di Carlo
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #pragma once
 
-#include <stdbool.h>
-#include <error/error.h>
-
-#if !(defined(__GNUC__) || defined(__clang__))
-__attribute__(...)
-#endif
+#include <panic/panic.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define RESULT_VERSION_MAJOR        1
-#define RESULT_VERSION_MINOR        0
-#define RESULT_VERSION_PATCH        0
-#define RESULT_VERSION_SUFFIX       ""
-#define RESULT_VERSION_IS_RELEASE   0
-#define RESULT_VERSION_HEX          0x010000
+#include <stdbool.h>
+
+#if !defined(__GNUC__)
+#define __attribute__(...)
+#endif
 
 /**
  * Result holds a returned value or an error providing a way of handling errors, without resorting to exception
@@ -52,145 +46,83 @@ extern "C" {
  */
 
 /**
- * @attention this struct must be treated as opaque therefore its members must not be accessed directly.
- */
-typedef struct {
-    Error __error;
-    const void *__value;
-} Result;
-
-/**
- * An helper macro used for type hinting, useful when writing interfaces.
- * By convention the annotated type is the wrapped value type and the following are the `Error` types that may be returned.
- */
-#define ResultOf(valueType, errors...) \
-    Result
-
-/**
- * Creates a `Result` variant wrapping an `Error`.
+ * Macro used to generate declarations of the result type (usually used in .h files).
  *
- * @attention error must not be `NULL`.
- * @attention error must not be `Ok`.
+ * @param NewType is the name of the generated result type.
+ * @param Err is the type of the error variant.
+ * @param Ok is the type of the ok variant.
+ * @attention the struct must be treated as opaque therefore its members must not be accessed directly, use the generated functions instead.
  */
-extern Result Result_error(Error error)
-__attribute__((__warn_unused_result__, __nonnull__));
+#define ResultDeclare(NewType, Err, Ok)                                                                                 \
+    struct NewType { union { Err __err; Ok __ok; }; int __tag; };                                                       \
+    \
+    extern struct NewType NewType##_ok(Ok ok)                                                                           \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern struct NewType NewType##_err(Err err)                                                                        \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern bool NewType##_isOk(struct NewType self)                                                                     \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern bool NewType##_isErr(struct NewType self)                                                                    \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern Ok NewType##_unwrap(struct NewType self)                                                                     \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern Ok NewType##_expect(struct NewType self, const char *fmt, ...)                                               \
+    __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3)));                              \
+    \
+    extern Err NewType##_unwrapErr(struct NewType self)                                                                 \
+    __attribute__((__warn_unused_result__));                                                                            \
+    \
+    extern Err NewType##_expectErr(struct NewType self, const char *fmt, ...)                                           \
+    __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3)));
 
 /**
- * Creates a `Result` variant wrapping a value.
+ * Macro used to generate definitions of the result type (usually used in .c files).
  *
- * @attention value must not be `NULL`.
+ * @param NewType is the name of the generated result type.
+ * @param Err is the type of the error variant.
+ * @param Ok is the type of the ok variant.
  */
-extern Result Result_ok(const void *value)
-__attribute__((__warn_unused_result__));
-
-/**
- * If value is `NULL` returns a `Result` variant wrapping `NullReferenceError` else returns a `Result` variant wrapping a value.
- */
-extern Result Result_fromNullable(const void *value)
-__attribute__((__warn_unused_result__));
-
-/**
- * Returns `true` if this `Result` is wrapping an `Error`, `false` otherwise.
- */
-extern bool Result_isError(Result self)
-__attribute__((__warn_unused_result__));
-
-/**
- * Returns `true` if this `Result` is wrapping a value, `false` otherwise.
- */
-extern bool Result_isOk(Result self)
-__attribute__((__warn_unused_result__));
-
-/**
- * If this `Result` is an `Ok` variant, apply `f` on its value and returns a `Result` wrapping the value else returns this `Result`.
- * If f returns `NULL` this function will return a `Result` variant wrapping `NullReferenceError`.
- *
- * @attention f must not be `NULL`.
- */
-extern Result Result_map(Result self, const void *f(const void *))
-__attribute__((__warn_unused_result__));
-
-/**
- * Chains several possibly failing computations.
- *
- * @attention f must not be `NULL`.
- */
-extern Result Result_chain(Result self, Result f(const void *))
-__attribute__((__warn_unused_result__));
-
-/**
- * If this `Result` is an `Ok` variant then this will be returned, if it's an `Error`  variant the next `Result` will be returned.
- */
-extern Result Result_alt(Result self, Result other)
-__attribute__((__warn_unused_result__));
-
-/**
- * Lazy version of `Result_alt(...)`.
- *
- * @attention f must not be `NULL`.
- */
-extern Result Result_orElse(Result self, Result f(void))
-__attribute__((__warn_unused_result__));
-
-/**
- * Returns the error associated to this `Result`.
- */
-extern Error Result_inspect(Result self)
-__attribute__((__warn_unused_result__));
-
-/**
- * Returns the explanations of the error associated to this `Result`.
- */
-extern const char *Result_explain(Result self)
-__attribute__((__warn_unused_result__));
-
-/**
- * Unwraps the value of this `Result` if it's an `Ok` variant or panics if this is an `Error` variant.
- */
-#define Result_unwrap(self) \
-    __Result_unwrap((__FILE__), (__LINE__), (self))
-
-/**
- * Unwraps the value of this `Result` if it's an `Ok` variant or panics if this is an `Error` variant with a custom message.
- */
-#define Result_expect(self, ...) \
-    __Result_expect((__FILE__), (__LINE__), (self), __VA_ARGS__)
-
-/**
- * Unwraps the value of this `Result` if it's an `Ok` variant or panics if this is an `Error` variant.
- */
-#define Result_unwrapAsMutable(self) \
-    __Result_unwrapAsMutable((__FILE__), (__LINE__), (self))
-
-/**
- * Unwraps the value of this `Result` if it's an `Ok` variant or panics if this is an `Error` variant with a custom message.
- */
-#define Result_expectAsMutable(self, ...) \
-    __Result_expectAsMutable((__FILE__), (__LINE__), (self), __VA_ARGS__)
-
-/**
-* @attention this function must be treated as opaque therefore must not be called directly.
-*/
-extern const void *__Result_unwrap(const char *file, int line, Result self)
-__attribute__((__nonnull__(1)));
-
-/**
- * @attention this function must be treated as opaque therefore must not be called directly.
- */
-extern const void *__Result_expect(const char *file, int line, Result self, const char *format, ...)
-__attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
-
-/**
-* @attention this function must be treated as opaque therefore must not be called directly.
-*/
-extern void *__Result_unwrapAsMutable(const char *file, int line, Result self)
-__attribute__((__nonnull__(1)));
-
-/**
- * @attention this function must be treated as opaque therefore must not be called directly.
- */
-extern void *__Result_expectAsMutable(const char *file, int line, Result self, const char *format, ...)
-__attribute__((__nonnull__(1, 4), __format__(__printf__, 4, 5)));
+#define ResultDefine(NewType, Err, Ok)                                                                                  \
+    struct NewType NewType##_ok(Ok ok) {                                                                                \
+        return (struct NewType) { .__ok = ok, .__tag = 1 };                                                             \
+    }                                                                                                                   \
+    \
+    struct NewType NewType##_err(Err err) {                                                                             \
+        return (struct NewType) { .__err = err, .__tag = 0 };                                                           \
+    }                                                                                                                   \
+    \
+    bool NewType##_isOk(const struct NewType self) {                                                                    \
+        return 1 == self.__tag;                                                                                         \
+    }                                                                                                                   \
+    \
+    bool NewType##_isErr(const struct NewType self) {                                                                   \
+        return 0 == self.__tag;                                                                                         \
+    }                                                                                                                   \
+    \
+    Ok NewType##_unwrap(const struct NewType self) {                                                                    \
+        if (1 == self.__tag)    { return self.__ok; }                                                                   \
+        else                    { panic("unable to unwrap value"); }                                                    \
+    }                                                                                                                   \
+    \
+    Ok NewType##_expect(const struct NewType self, const char *const fmt, ...) {                                        \
+        if (1 == self.__tag)    { return self.__ok; }                                                                   \
+        else                    { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }                  \
+    }                                                                                                                   \
+    \
+    Err NewType##_unwrapErr(const struct NewType self) {                                                                \
+        if (0 == self.__tag)    { return self.__err; }                                                                  \
+        else                    { panic("unable to unwrap error"); };                                                   \
+    }                                                                                                                   \
+    \
+    Err NewType##_expectErr(const struct NewType self, const char *const fmt, ...) {                                    \
+        if (0 == self.__tag)    { return self.__err; }                                                                  \
+        else                    { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }                  \
+    }
 
 #ifdef __cplusplus
 }

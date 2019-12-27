@@ -1,7 +1,7 @@
 {
   "name": "result",
   "repo": "daddinuz/result",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "license": "MIT",
   "description": "Result type resembling Rust's Result.",
   "keywords": [
@@ -9,16 +9,14 @@
     "result-type"
   ],
   "src": [
-    "sources/result.h",
-    "sources/result.c"
+    "sources/result.h"
   ],
   "dependencies": {
-    "daddinuz/error": "1.0.0",
-    "daddinuz/panic": "1.0.0"
+    "daddinuz/panic": "2.0.0"
   },
   "development": {
-    "daddinuz/traits": "3.2.0",
-    "daddinuz/traits-unit": "3.0.0"
+    "daddinuz/traits": "4.0.1",
+    "daddinuz/traits-unit": "4.0.2"
   },
   "makefile": "sources/build.cmake"
 }

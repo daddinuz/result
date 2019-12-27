@@ -30,14 +30,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "features.h"
 
 Feature(Result_error) {
-    const size_t counter = traits_unit_get_wrapped_signals_counter();
+    const size_t counter = traitsUnit_getWrappedSignalsCounter();
 
     traits_unit_wraps(SIGABRT) {
         Error error = NULL;
         Result _ = Result_error(error);
         (void) _;
     }
-    assert_equal(traits_unit_get_wrapped_signals_counter(), counter + 1);
+    assert_equal(traitsUnit_getWrappedSignalsCounter(), counter + 1);
 
     traits_unit_wraps(SIGABRT) {
         Result _ = Result_error(Ok);

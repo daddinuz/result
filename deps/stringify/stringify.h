@@ -25,33 +25,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*
- * .h
- */
-#include <stdio.h>
-#include <result.h>
+#pragma once
 
-ResultDeclare(DivisionResult, const char *, double)
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct DivisionResult division(double dividend, double divisor);
+#define __stringify(s)  #s
+#define stringify(s)    __stringify(s)
 
-int main() {
-    struct DivisionResult result = division(18, 0);
-
-    if (DivisionResult_isOk(result)) {
-        printf("Result: %f\n", DivisionResult_expect(result, "'%s' expected a number", __TRACE__));
-    } else {
-        printf("Error: %s\n", DivisionResult_expectErr(result, "'%s' expected an error", __TRACE__));
-    }
-
-    return 0;
+#ifdef __cplusplus
 }
-
-/*
- * .c
- */
-ResultDefine(DivisionResult, const char *, double)
-
-struct DivisionResult division(double dividend, double divisor) {
-    return -0.0001 <= divisor && divisor <= 0.0001 ? DivisionResult_err("division by zero") : DivisionResult_ok(dividend / divisor);
-}
+#endif
