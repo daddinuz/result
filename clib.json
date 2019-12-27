@@ -3,7 +3,7 @@
   "repo": "daddinuz/result",
   "version": "2.0.0",
   "license": "MIT",
-  "description": "Result type resembling Rust's Result.",
+  "description": "Result type holding a returned value or an error.",
   "keywords": [
     "error-handling",
     "result-type"
