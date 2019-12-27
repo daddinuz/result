@@ -2,8 +2,8 @@
 
 [![Build Status](https://travis-ci.org/daddinuz/result.svg?branch=master)](https://travis-ci.org/daddinuz/result)
 
-Result holds a returned value or an error providing a way of handling errors, without resorting to exception handling; 
-when a function that may fail returns a result type, the programmer is forced to consider success or failure paths, 
+Result holds a returned value or an error providing a way of handling errors, without resorting to exception handling;
+when a function that may fail returns a result type, the programmer is forced to consider success or failure paths,
 before getting access to the expected result; this eliminates the possibility of an erroneous programmer assumption.
 
 ```c
@@ -21,9 +21,9 @@ int main() {
     struct DivisionResult result = division(18, 0);
 
     if (DivisionResult_isOk(result)) {
-        printf("Result: %f\n", DivisionResult_expect(result, "'%s' expected a number", __TRACE__));
+        printf("%f\n", DivisionResult_expect(result, "At '%s': expected a number", __TRACE__));
     } else {
-        printf("Error: %s\n", DivisionResult_expectErr(result, "'%s' expected an error", __TRACE__));
+        printf("At '%s': %s\n", __TRACE__, DivisionResult_expectErr(result, "At '%s': expected an error", __TRACE__));
     }
 
     return 0;

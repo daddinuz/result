@@ -39,9 +39,9 @@ int main() {
     struct DivisionResult result = division(18, 0);
 
     if (DivisionResult_isOk(result)) {
-        printf("Result: %f\n", DivisionResult_expect(result, "'%s' expected a number", __TRACE__));
+        printf("%f\n", DivisionResult_expect(result, "At '%s': expected a number", __TRACE__));
     } else {
-        printf("Error: %s\n", DivisionResult_expectErr(result, "'%s' expected an error", __TRACE__));
+        printf("At '%s': %s\n", __TRACE__, DivisionResult_expectErr(result, "At '%s': expected an error", __TRACE__));
     }
 
     return 0;
