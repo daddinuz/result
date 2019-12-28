@@ -13,28 +13,22 @@ before getting access to the expected result; this eliminates the possibility of
 #include <stdio.h>
 #include <result.h>
 
-ResultDeclare(DivisionResult, const char *, double)
+ResultDeclare(NumericResult, const char *, double)
 
-struct DivisionResult division(double dividend, double divisor);
+struct NumericResult divide(double numerator, double denominator);
 
 int main() {
-    struct DivisionResult result = division(18, 0);
-
-    if (DivisionResult_isOk(result)) {
-        printf("%f\n", DivisionResult_expect(result, "At '%s': expected a number", __TRACE__));
-    } else {
-        printf("At '%s': %s\n", __TRACE__, DivisionResult_expectErr(result, "At '%s': expected an error", __TRACE__));
-    }
-
+    struct NumericResult number = divide(18, 0);
+    printf("%f\n", NumericResult_expect(number, "'%s': expected a number", __TRACE__));
     return 0;
 }
 
 /*
  * .c
  */
-ResultDefine(DivisionResult, const char *, double)
+ResultDefine(NumericResult, const char *, double)
 
-struct DivisionResult division(double dividend, double divisor) {
-    return -0.0001 <= divisor && divisor <= 0.0001 ? DivisionResult_err("division by zero") : DivisionResult_ok(dividend / divisor);
+struct NumericResult divide(const double numerator, const double denominator) {
+    return -0.0001 <= denominator && denominator <= 0.0001 ? NumericResult_err("division by zero") : NumericResult_ok(numerator / denominator);
 }
 ```
