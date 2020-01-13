@@ -82,7 +82,7 @@ extern "C" {
     __attribute__((__warn_unused_result__));                                                                            \
     \
     extern Err NewType##_expectErr(struct NewType self, const char *fmt, ...)                                           \
-    __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3)));
+    __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3))) /* semi-colon */
 
 /**
  * Macro used to generate definitions of the result type (usually used in .c files).
@@ -126,7 +126,9 @@ extern "C" {
     Err NewType##_expectErr(const struct NewType self, const char *const fmt, ...) {                                    \
         if (__RESULT_ERR_TAG == self.__tag) { return self.__err; }                                                      \
         else                                { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }      \
-    }
+    }                                                                                                                   \
+    \
+    typedef int __result_##NewType##_defined__ /* semi-colon */
 
 #ifdef __cplusplus
 }

@@ -28,7 +28,7 @@
 #include <traits/traits.h>
 #include "features.h"
 
-ResultDefine(DivisionResult, const char *, double)
+ResultDefine(DivisionResult, const char *, double);
 
 Feature(Result_ok) {
     const double value = 5.0;

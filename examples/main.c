@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <result.h>
 
-ResultDeclare(NumericResult, const char *, double)
+ResultDeclare(NumericResult, const char *, double);
 
 struct NumericResult divide(double numerator, double denominator);
 
@@ -44,7 +44,7 @@ int main() {
 /*
  * .c
  */
-ResultDefine(NumericResult, const char *, double)
+ResultDefine(NumericResult, const char *, double);
 
 struct NumericResult divide(const double numerator, const double denominator) {
     return -0.0001 <= denominator && denominator <= 0.0001 ? NumericResult_err("division by zero") : NumericResult_ok(numerator / denominator);

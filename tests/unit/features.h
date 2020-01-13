@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-ResultDeclare(DivisionResult, const char *, double)
+ResultDeclare(DivisionResult, const char *, double);
 
 Feature(Result_ok);
 Feature(Result_err);
