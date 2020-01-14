@@ -33,6 +33,7 @@
 extern "C" {
 #endif
 
+#include <assert.h>
 #include <stdbool.h>
 
 #if !defined(__GNUC__)
@@ -52,83 +53,85 @@ extern "C" {
 /**
  * Macro used to generate declarations of the result type (usually used in .h files).
  *
- * @param NewType is the name of the generated result type.
+ * @param Identifier is the name of the generated result type.
  * @param Err is the type of the error variant.
  * @param Ok is the type of the ok variant.
  * @attention the struct must be treated as opaque therefore its members must not be accessed directly, use the generated functions instead.
  */
-#define ResultDeclare(NewType, Err, Ok)                                                                                 \
-    struct NewType { union { Err __err; Ok __ok; }; unsigned char __tag; };                                             \
+#define ResultDeclare(Identifier, Err, Ok)                                                                              \
+    struct Identifier { union { Err __err; Ok __ok; }; unsigned char __tag; };                                          \
     \
-    extern struct NewType NewType##_ok(Ok ok)                                                                           \
+    extern struct Identifier Identifier##_ok(Ok ok)                                                                     \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern struct NewType NewType##_err(Err err)                                                                        \
+    extern struct Identifier Identifier##_err(Err err)                                                                  \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern bool NewType##_isOk(struct NewType self)                                                                     \
+    extern bool Identifier##_isOk(struct Identifier self)                                                               \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern bool NewType##_isErr(struct NewType self)                                                                    \
+    extern bool Identifier##_isErr(struct Identifier self)                                                              \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern Ok NewType##_unwrap(struct NewType self)                                                                     \
+    extern Ok Identifier##_unwrap(struct Identifier self)                                                               \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern Ok NewType##_expect(struct NewType self, const char *fmt, ...)                                               \
+    extern Ok Identifier##_expect(struct Identifier self, const char *fmt, ...)                                         \
     __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3)));                              \
     \
-    extern Err NewType##_unwrapErr(struct NewType self)                                                                 \
+    extern Err Identifier##_unwrapErr(struct Identifier self)                                                           \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern Err NewType##_expectErr(struct NewType self, const char *fmt, ...)                                           \
+    extern Err Identifier##_expectErr(struct Identifier self, const char *fmt, ...)                                     \
     __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3))) /* semi-colon */
 
 /**
  * Macro used to generate definitions of the result type (usually used in .c files).
  *
- * @param NewType is the name of the generated result type.
+ * @param Identifier is the name of the generated result type.
  * @param Err is the type of the error variant.
  * @param Ok is the type of the ok variant.
  */
-#define ResultDefine(NewType, Err, Ok)                                                                                  \
-    struct NewType NewType##_ok(Ok ok) {                                                                                \
-        return (struct NewType) { .__ok = ok, .__tag = __RESULT_OK_TAG };                                               \
+#define ResultDefine(Identifier, Err, Ok)                                                                               \
+    struct Identifier Identifier##_ok(Ok ok) {                                                                          \
+        return (struct Identifier) { .__ok = ok, .__tag = __RESULT_OK_TAG };                                            \
     }                                                                                                                   \
     \
-    struct NewType NewType##_err(Err err) {                                                                             \
-        return (struct NewType) { .__err = err, .__tag = __RESULT_ERR_TAG };                                            \
+    struct Identifier Identifier##_err(Err err) {                                                                       \
+        return (struct Identifier) { .__err = err, .__tag = __RESULT_ERR_TAG };                                         \
     }                                                                                                                   \
     \
-    bool NewType##_isOk(const struct NewType self) {                                                                    \
+    bool Identifier##_isOk(const struct Identifier self) {                                                              \
         return __RESULT_OK_TAG == self.__tag;                                                                           \
     }                                                                                                                   \
     \
-    bool NewType##_isErr(const struct NewType self) {                                                                   \
+    bool Identifier##_isErr(const struct Identifier self) {                                                             \
         return __RESULT_ERR_TAG == self.__tag;                                                                          \
     }                                                                                                                   \
     \
-    Ok NewType##_unwrap(const struct NewType self) {                                                                    \
+    Ok Identifier##_unwrap(const struct Identifier self) {                                                              \
         if (__RESULT_OK_TAG == self.__tag) { return self.__ok; }                                                        \
         else                               { panic("unable to unwrap value"); }                                         \
     }                                                                                                                   \
     \
-    Ok NewType##_expect(const struct NewType self, const char *const fmt, ...) {                                        \
+    Ok Identifier##_expect(const struct Identifier self, const char *const fmt, ...) {                                  \
+        assert(NULL != fmt);                                                                                            \
         if (__RESULT_OK_TAG == self.__tag) { return self.__ok; }                                                        \
         else                               { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }       \
     }                                                                                                                   \
     \
-    Err NewType##_unwrapErr(const struct NewType self) {                                                                \
+    Err Identifier##_unwrapErr(const struct Identifier self) {                                                          \
         if (__RESULT_ERR_TAG == self.__tag) { return self.__err; }                                                      \
         else                                { panic("unable to unwrap error"); };                                       \
     }                                                                                                                   \
     \
-    Err NewType##_expectErr(const struct NewType self, const char *const fmt, ...) {                                    \
+    Err Identifier##_expectErr(const struct Identifier self, const char *const fmt, ...) {                              \
+        assert(NULL != fmt);                                                                                            \
         if (__RESULT_ERR_TAG == self.__tag) { return self.__err; }                                                      \
         else                                { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }      \
     }                                                                                                                   \
     \
-    typedef int __result_##NewType##_defined__ /* semi-colon */
+    typedef int __result_##Identifier##_defined__ /* semi-colon */
 
 #ifdef __cplusplus
 }
