@@ -41,8 +41,10 @@ extern "C" {
 #endif
 
 // internal use only, must not be used directly.
-#define __RESULT_OK_TAG    0xA5
-#define __RESULT_ERR_TAG   0x5A
+typedef unsigned char __ResultTag;
+
+#define __RESULT_OK_TAG      0xA5u
+#define __RESULT_ERR_TAG     0x5Au
 
 /**
  * Result holds a returned value or an error providing a way of handling errors, without resorting to exception
@@ -53,85 +55,91 @@ extern "C" {
 /**
  * Macro used to generate declarations of the result type (usually used in .h files).
  *
- * @param Identifier is the name of the generated result type.
+ * @param Struct is the name of the generated result type.
  * @param Err is the type of the error variant.
  * @param Ok is the type of the ok variant.
  * @attention the struct must be treated as opaque therefore its members must not be accessed directly, use the generated functions instead.
  */
-#define ResultDeclare(Identifier, Err, Ok)                                                                              \
-    struct Identifier { union { Err __err; Ok __ok; }; unsigned char __tag; };                                          \
+#define ResultDeclare(Struct, Err, Ok)                                                                                  \
+    struct Struct { union { Err __err; Ok __ok; }; __ResultTag __tag; };                                                \
     \
-    extern struct Identifier Identifier##_ok(Ok ok)                                                                     \
+    extern struct Struct Struct##_ok(Ok ok)                                                                             \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern struct Identifier Identifier##_err(Err err)                                                                  \
+    extern struct Struct Struct##_err(Err err)                                                                          \
     __attribute__((__warn_unused_result__));                                                                            \
     \
-    extern bool Identifier##_isOk(struct Identifier self)                                                               \
-    __attribute__((__warn_unused_result__));                                                                            \
+    extern bool Struct##_isOk(const struct Struct *self)                                                                \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
     \
-    extern bool Identifier##_isErr(struct Identifier self)                                                              \
-    __attribute__((__warn_unused_result__));                                                                            \
+    extern bool Struct##_isErr(const struct Struct *self)                                                               \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
     \
-    extern Ok Identifier##_unwrap(struct Identifier self)                                                               \
-    __attribute__((__warn_unused_result__));                                                                            \
+    extern Ok Struct##_unwrap(const struct Struct *self)                                                                \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
     \
-    extern Ok Identifier##_expect(struct Identifier self, const char *fmt, ...)                                         \
-    __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3)));                              \
+    extern Ok Struct##_expect(const struct Struct *self, const char *fmt, ...)                                          \
+    __attribute__((__warn_unused_result__, __nonnull__(1, 2), __format__(__printf__, 2, 3)));                           \
     \
-    extern Err Identifier##_unwrapErr(struct Identifier self)                                                           \
-    __attribute__((__warn_unused_result__));                                                                            \
+    extern Err Struct##_unwrapErr(const struct Struct *self)                                                            \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
     \
-    extern Err Identifier##_expectErr(struct Identifier self, const char *fmt, ...)                                     \
-    __attribute__((__warn_unused_result__, __nonnull__(2), __format__(__printf__, 2, 3))) /* semi-colon */
+    extern Err Struct##_expectErr(const struct Struct *self, const char *fmt, ...)                                      \
+    __attribute__((__warn_unused_result__, __nonnull__(1, 2), __format__(__printf__, 2, 3))) /* semi-colon */
 
 /**
  * Macro used to generate definitions of the result type (usually used in .c files).
  *
- * @param Identifier is the name of the generated result type.
+ * @param Struct is the name of the generated result type.
  * @param Err is the type of the error variant.
  * @param Ok is the type of the ok variant.
  */
-#define ResultDefine(Identifier, Err, Ok)                                                                               \
-    struct Identifier Identifier##_ok(Ok ok) {                                                                          \
-        return (struct Identifier) { .__ok = ok, .__tag = __RESULT_OK_TAG };                                            \
+#define ResultDefine(Struct, Err, Ok)                                                                                   \
+    struct Struct Struct##_ok(Ok ok) {                                                                                  \
+        return (struct Struct) { .__ok = ok, .__tag = __RESULT_OK_TAG };                                                \
     }                                                                                                                   \
     \
-    struct Identifier Identifier##_err(Err err) {                                                                       \
-        return (struct Identifier) { .__err = err, .__tag = __RESULT_ERR_TAG };                                         \
+    struct Struct Struct##_err(Err err) {                                                                               \
+        return (struct Struct) { .__err = err, .__tag = __RESULT_ERR_TAG };                                             \
     }                                                                                                                   \
     \
-    bool Identifier##_isOk(const struct Identifier self) {                                                              \
-        return __RESULT_OK_TAG == self.__tag;                                                                           \
+    bool Struct##_isOk(const struct Struct *const self) {                                                               \
+        assert(NULL != self);                                                                                           \
+        return __RESULT_OK_TAG == self->__tag;                                                                          \
     }                                                                                                                   \
     \
-    bool Identifier##_isErr(const struct Identifier self) {                                                             \
-        return __RESULT_ERR_TAG == self.__tag;                                                                          \
+    bool Struct##_isErr(const struct Struct *const self) {                                                              \
+        assert(NULL != self);                                                                                           \
+        return __RESULT_ERR_TAG == self->__tag;                                                                         \
     }                                                                                                                   \
     \
-    Ok Identifier##_unwrap(const struct Identifier self) {                                                              \
-        if (__RESULT_OK_TAG == self.__tag) { return self.__ok; }                                                        \
-        else                               { panic("unable to unwrap value"); }                                         \
+    Ok Struct##_unwrap(const struct Struct *const self) {                                                               \
+        assert(NULL != self);                                                                                           \
+        if (__RESULT_OK_TAG == self->__tag) { return self->__ok; }                                                      \
+        else                                { panic("unable to unwrap value"); }                                        \
     }                                                                                                                   \
     \
-    Ok Identifier##_expect(const struct Identifier self, const char *const fmt, ...) {                                  \
+    Ok Struct##_expect(const struct Struct *const self, const char *const fmt, ...) {                                   \
+        assert(NULL != self);                                                                                           \
         assert(NULL != fmt);                                                                                            \
-        if (__RESULT_OK_TAG == self.__tag) { return self.__ok; }                                                        \
-        else                               { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }       \
-    }                                                                                                                   \
-    \
-    Err Identifier##_unwrapErr(const struct Identifier self) {                                                          \
-        if (__RESULT_ERR_TAG == self.__tag) { return self.__err; }                                                      \
-        else                                { panic("unable to unwrap error"); };                                       \
-    }                                                                                                                   \
-    \
-    Err Identifier##_expectErr(const struct Identifier self, const char *const fmt, ...) {                              \
-        assert(NULL != fmt);                                                                                            \
-        if (__RESULT_ERR_TAG == self.__tag) { return self.__err; }                                                      \
+        if (__RESULT_OK_TAG == self->__tag) { return self->__ok; }                                                      \
         else                                { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }      \
     }                                                                                                                   \
     \
-    typedef int __result_##Identifier##_defined__ /* semi-colon */
+    Err Struct##_unwrapErr(const struct Struct *const self) {                                                           \
+        assert(NULL != self);                                                                                           \
+        if (__RESULT_ERR_TAG == self->__tag) { return self->__err; }                                                    \
+        else                                 { panic("unable to unwrap error"); };                                      \
+    }                                                                                                                   \
+    \
+    Err Struct##_expectErr(const struct Struct *const self, const char *const fmt, ...) {                               \
+        assert(NULL != self);                                                                                           \
+        assert(NULL != fmt);                                                                                            \
+        if (__RESULT_ERR_TAG == self->__tag) { return self->__err; }                                                    \
+        else                                 { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }     \
+    }                                                                                                                   \
+    \
+    static_assert(1, "") /* semi-colon */
 
 #ifdef __cplusplus
 }
