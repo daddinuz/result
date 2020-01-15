@@ -19,7 +19,7 @@ struct NumericResult divide(double numerator, double denominator);
 
 int main() {
     struct NumericResult number = divide(18, 0);
-    printf("%f\n", NumericResult_expect(number, "'%s': expected a number", __TRACE__));
+    printf("%f\n", NumericResult_expect(&number, "'%s': expected a number", __TRACE__));
     return 0;
 }
 
