@@ -34,30 +34,30 @@ Feature(Result_ok) {
     const double value = 5.0;
     struct DivisionResult sut = DivisionResult_ok(value);
 
-    assert_that(DivisionResult_isOk(sut));
-    assert_false(DivisionResult_isErr(sut));
+    assert_that(DivisionResult_isOk(&sut));
+    assert_false(DivisionResult_isErr(&sut));
 
     {
-        const double ok = DivisionResult_unwrap(sut);
+        const double ok = DivisionResult_unwrap(&sut);
         assert_equal(value, ok);
     }
 
     {
-        const double ok = DivisionResult_expect(sut, "expected a value");
+        const double ok = DivisionResult_expect(&sut, "expected a value");
         assert_equal(value, ok);
     }
 
     const size_t sigcount = traitsUnit_getWrappedSignalsCounter();
 
     traitsUnit_wrap(SIGABRT) {
-        const char *const err = DivisionResult_unwrapErr(sut);
+        const char *const err = DivisionResult_unwrapErr(&sut);
         (void) err;
     }
 
     assert_equal(sigcount + 1, traitsUnit_getWrappedSignalsCounter());
 
     traitsUnit_wrap(SIGABRT) {
-        const char *const err = DivisionResult_expectErr(sut, "expected an error");
+        const char *const err = DivisionResult_expectErr(&sut, "expected an error");
         (void) err;
     }
 
@@ -68,30 +68,30 @@ Feature(Result_err) {
     const char *const value = "error";
     struct DivisionResult sut = DivisionResult_err(value);
 
-    assert_that(DivisionResult_isErr(sut));
-    assert_false(DivisionResult_isOk(sut));
+    assert_that(DivisionResult_isErr(&sut));
+    assert_false(DivisionResult_isOk(&sut));
 
     {
-        const char *const err = DivisionResult_unwrapErr(sut);
+        const char *const err = DivisionResult_unwrapErr(&sut);
         assert_equal(value, err);
     }
 
     {
-        const char *const err = DivisionResult_expectErr(sut, "expected a value");
+        const char *const err = DivisionResult_expectErr(&sut, "expected a value");
         assert_equal(value, err);
     }
 
     const size_t sigcount = traitsUnit_getWrappedSignalsCounter();
 
     traitsUnit_wrap(SIGABRT) {
-        const double value = DivisionResult_unwrap(sut);
+        const double value = DivisionResult_unwrap(&sut);
         (void) value;
     }
 
     assert_equal(sigcount + 1, traitsUnit_getWrappedSignalsCounter());
 
     traitsUnit_wrap(SIGABRT) {
-        const double value = DivisionResult_expect(sut, "expected a value");
+        const double value = DivisionResult_expect(&sut, "expected a value");
         (void) value;
     }
 
