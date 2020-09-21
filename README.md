@@ -7,28 +7,37 @@ when a function that may fail returns a result type, the programmer is forced to
 before getting access to the expected result; this eliminates the possibility of an erroneous programmer assumption.
 
 ```c
-/*
- * .h
- */
 #include <stdio.h>
 #include <result.h>
 
-ResultDeclare(NumericResult, const char *, double);
+/*
+ * .h
+ */
+enum MathError {
+    DivisionByZero,
+};
 
-struct NumericResult divide(double numerator, double denominator);
+result_declare(NumericResult, enum MathError, double);
 
+NumericResult divide(double numerator, double denominator);
+
+/*
+ * main.c
+ */
 int main() {
-    struct NumericResult number = divide(18, 0);
-    printf("%f\n", NumericResult_expect(&number, "'%s': expected a number", __TRACE__));
+    NumericResult result = divide(18, 0);
+    printf("%f\n", NumericResult_expect(&result, "'%s'\nError: expected a number", TRACE));
     return 0;
 }
 
 /*
  * .c
  */
-ResultDefine(NumericResult, const char *, double);
+result_define(NumericResult, enum MathError, double);
 
-struct NumericResult divide(const double numerator, const double denominator) {
-    return -0.0001 <= denominator && denominator <= 0.0001 ? NumericResult_err("division by zero") : NumericResult_ok(numerator / denominator);
+NumericResult divide(const double numerator, const double denominator) {
+    return -0.000001 <= denominator && denominator <= 0.000001
+            ? NumericResult_err(DivisionByZero)
+            : NumericResult_ok(numerator / denominator);
 }
 ```

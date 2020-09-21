@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,27 +25,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*
- * .h
- */
 #include <stdio.h>
 #include <result.h>
 
-ResultDeclare(NumericResult, const char *, double);
+/*
+ * .h
+ */
+enum MathError {
+    DivisionByZero,
+};
 
-struct NumericResult divide(double numerator, double denominator);
+result_declare(NumericResult, enum MathError, double);
 
+NumericResult divide(double numerator, double denominator);
+
+/*
+ * main.c
+ */
 int main() {
-    struct NumericResult number = divide(18, 0);
-    printf("%f\n", NumericResult_expect(&number, "'%s': expected a number", __TRACE__));
+    NumericResult result = divide(18, 0);
+    printf("%f\n", NumericResult_expect(&result, "'%s'\nError: expected a number", TRACE));
     return 0;
 }
 
 /*
  * .c
  */
-ResultDefine(NumericResult, const char *, double);
+result_define(NumericResult, enum MathError, double);
 
-struct NumericResult divide(const double numerator, const double denominator) {
-    return -0.0001 <= denominator && denominator <= 0.0001 ? NumericResult_err("division by zero") : NumericResult_ok(numerator / denominator);
+NumericResult divide(const double numerator, const double denominator) {
+    return -0.000001 <= denominator && denominator <= 0.000001
+            ? NumericResult_err(DivisionByZero)
+            : NumericResult_ok(numerator / denominator);
 }

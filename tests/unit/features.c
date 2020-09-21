@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,11 +28,11 @@
 #include <traits/traits.h>
 #include "features.h"
 
-ResultDefine(DivisionResult, const char *, double);
+result_define(DivisionResult, const char *, double);
 
 Feature(Result_ok) {
     const double value = 5.0;
-    struct DivisionResult sut = DivisionResult_ok(value);
+    DivisionResult sut = DivisionResult_ok(value);
 
     assert_that(DivisionResult_isOk(&sut));
     assert_false(DivisionResult_isErr(&sut));
@@ -66,7 +66,7 @@ Feature(Result_ok) {
 
 Feature(Result_err) {
     const char *const value = "error";
-    struct DivisionResult sut = DivisionResult_err(value);
+    DivisionResult sut = DivisionResult_err(value);
 
     assert_that(DivisionResult_isErr(&sut));
     assert_false(DivisionResult_isOk(&sut));

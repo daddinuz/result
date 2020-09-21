@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Davide Di Carlo
+ * Copyright (c) 2020 Davide Di Carlo
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,17 +34,14 @@ extern "C" {
 #endif
 
 #include <assert.h>
+#include <string.h>
+#include <stddef.h>
 #include <stdbool.h>
+#include <stdalign.h>
 
-#if !defined(__GNUC__)
+#if !(defined(__GNUC__) || defined(__clang__))
 #define __attribute__(...)
 #endif
-
-// internal use only, must not be used directly.
-typedef unsigned char __ResultTag;
-
-#define __RESULT_OK_TAG      0xA5u
-#define __RESULT_ERR_TAG     0x5Au
 
 /**
  * Result holds a returned value or an error providing a way of handling errors, without resorting to exception
@@ -53,91 +50,106 @@ typedef unsigned char __ResultTag;
  */
 
 /**
- * Macro used to generate declarations of the result type (usually used in .h files).
+ * Macro used to generate declarations of the result type (must be used in .h files).
  *
- * @param Struct is the name of the generated result type.
- * @param Err is the type of the error variant.
- * @param Ok is the type of the ok variant.
+ * @param Ident is the name of the generated result type.
+ * @param ErrType is the type of the error variant.
+ * @param OkType is the type of the ok variant.
  * @attention the struct must be treated as opaque therefore its members must not be accessed directly, use the generated functions instead.
  */
-#define ResultDeclare(Struct, Err, Ok)                                                                                  \
-    struct Struct { union { Err __err; Ok __ok; }; __ResultTag __tag; };                                                \
+#define result_declare(Ident, ErrType, OkType)                                                          \
+    typedef struct Ident {                                                                              \
+        alignas(alignof(OkType) > alignof(ErrType) ? alignof(OkType) : alignof(ErrType))                \
+        char _[(sizeof(OkType) > sizeof(ErrType) ? sizeof(OkType) : sizeof(ErrType)) + 1];              \
+    } Ident;                                                                                            \
     \
-    extern struct Struct Struct##_ok(Ok ok)                                                                             \
-    __attribute__((__warn_unused_result__));                                                                            \
+    extern struct Ident Ident##_ok(OkType ok)                                                           \
+    __attribute__((__warn_unused_result__));                                                            \
     \
-    extern struct Struct Struct##_err(Err err)                                                                          \
-    __attribute__((__warn_unused_result__));                                                                            \
+    extern struct Ident Ident##_err(ErrType err)                                                        \
+    __attribute__((__warn_unused_result__));                                                            \
     \
-    extern bool Struct##_isOk(const struct Struct *self)                                                                \
-    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
+    extern bool Ident##_isOk(const struct Ident *self)                                                  \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                            \
     \
-    extern bool Struct##_isErr(const struct Struct *self)                                                               \
-    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
+    extern bool Ident##_isErr(const struct Ident *self)                                                 \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                            \
     \
-    extern Ok Struct##_unwrap(const struct Struct *self)                                                                \
-    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
+    extern OkType Ident##_unwrap(const struct Ident *self)                                              \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                            \
     \
-    extern Ok Struct##_expect(const struct Struct *self, const char *fmt, ...)                                          \
-    __attribute__((__warn_unused_result__, __nonnull__(1, 2), __format__(__printf__, 2, 3)));                           \
+    extern OkType Ident##_expect(const struct Ident *self, const char *fmt, ...)                        \
+    __attribute__((__warn_unused_result__, __nonnull__(1, 2), __format__(__printf__, 2, 3)));           \
     \
-    extern Err Struct##_unwrapErr(const struct Struct *self)                                                            \
-    __attribute__((__warn_unused_result__, __nonnull__(1)));                                                            \
+    extern ErrType Ident##_unwrapErr(const struct Ident *self)                                          \
+    __attribute__((__warn_unused_result__, __nonnull__(1)));                                            \
     \
-    extern Err Struct##_expectErr(const struct Struct *self, const char *fmt, ...)                                      \
-    __attribute__((__warn_unused_result__, __nonnull__(1, 2), __format__(__printf__, 2, 3))) /* semi-colon */
+    extern ErrType Ident##_expectErr(const struct Ident *self, const char *fmt, ...)                    \
+    __attribute__((__warn_unused_result__, __nonnull__(1, 2), __format__(__printf__, 2, 3)));           \
+    \
+    static_assert(1, "") /* semi-colon */
 
 /**
- * Macro used to generate definitions of the result type (usually used in .c files).
+ * Macro used to generate definitions of the result type (must be used in .c files).
  *
- * @param Struct is the name of the generated result type.
- * @param Err is the type of the error variant.
- * @param Ok is the type of the ok variant.
+ * @param Ident is the name of the generated result type.
+ * @param ErrType is the type of the error variant.
+ * @param OkType is the type of the ok variant.
  */
-#define ResultDefine(Struct, Err, Ok)                                                                                   \
-    struct Struct Struct##_ok(Ok ok) {                                                                                  \
-        return (struct Struct) { .__ok = ok, .__tag = __RESULT_OK_TAG };                                                \
-    }                                                                                                                   \
+#define result_define(Ident, ErrType, OkType)                                                           \
+    struct Ident Ident##_ok(OkType ok) {                                                                \
+        struct Ident self;                                                                              \
+        memcpy(self._, &ok, sizeof(OkType));                                                            \
+        self._[sizeof(self._) - 1] = +42;                                                               \
+        return self;                                                                                    \
+    }                                                                                                   \
     \
-    struct Struct Struct##_err(Err err) {                                                                               \
-        return (struct Struct) { .__err = err, .__tag = __RESULT_ERR_TAG };                                             \
-    }                                                                                                                   \
+    struct Ident Ident##_err(ErrType err) {                                                             \
+        struct Ident self;                                                                              \
+        memcpy(self._, &err, sizeof(ErrType));                                                          \
+        self._[sizeof(self._) - 1] = -42;                                                               \
+        return self;                                                                                    \
+    }                                                                                                   \
     \
-    bool Struct##_isOk(const struct Struct *const self) {                                                               \
-        assert(NULL != self);                                                                                           \
-        return __RESULT_OK_TAG == self->__tag;                                                                          \
-    }                                                                                                                   \
+    bool Ident##_isOk(const struct Ident *const self) {                                                 \
+        assert(NULL != self);                                                                           \
+        return self->_[sizeof(self->_) - 1] == +42;                                                     \
+    }                                                                                                   \
     \
-    bool Struct##_isErr(const struct Struct *const self) {                                                              \
-        assert(NULL != self);                                                                                           \
-        return __RESULT_ERR_TAG == self->__tag;                                                                         \
-    }                                                                                                                   \
+    bool Ident##_isErr(const struct Ident *const self) {                                                \
+        assert(NULL != self);                                                                           \
+        return self->_[sizeof(self->_) - 1] == -42;                                                     \
+    }                                                                                                   \
     \
-    Ok Struct##_unwrap(const struct Struct *const self) {                                                               \
-        assert(NULL != self);                                                                                           \
-        if (__RESULT_OK_TAG == self->__tag) { return self->__ok; }                                                      \
-        else                                { panic("unable to unwrap value"); }                                        \
-    }                                                                                                                   \
+    OkType Ident##_unwrap(const struct Ident *const self) {                                             \
+        assert(NULL != self);                                                                           \
+        panic_assert(Ident##_isOk(self));                                                               \
+        OkType out;                                                                                     \
+        memcpy(&out, self->_, sizeof(OkType));                                                          \
+        return out;                                                                                     \
+    }                                                                                                   \
     \
-    Ok Struct##_expect(const struct Struct *const self, const char *const fmt, ...) {                                   \
-        assert(NULL != self);                                                                                           \
-        assert(NULL != fmt);                                                                                            \
-        if (__RESULT_OK_TAG == self->__tag) { return self->__ok; }                                                      \
-        else                                { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }      \
-    }                                                                                                                   \
+    OkType Ident##_expect(const struct Ident *const self, const char *const fmt, ...) {                 \
+        assert(NULL != self);                                                                           \
+        assert(NULL != fmt);                                                                            \
+        if (Ident##_isOk(self)) { return Ident##_unwrap(self); }                                        \
+        else                    { va_list args; va_start(args, fmt); panic_vabort(TRACE, fmt, args); }  \
+    }                                                                                                   \
     \
-    Err Struct##_unwrapErr(const struct Struct *const self) {                                                           \
-        assert(NULL != self);                                                                                           \
-        if (__RESULT_ERR_TAG == self->__tag) { return self->__err; }                                                    \
-        else                                 { panic("unable to unwrap error"); };                                      \
-    }                                                                                                                   \
+    ErrType Ident##_unwrapErr(const struct Ident *const self) {                                         \
+        assert(NULL != self);                                                                           \
+        panic_assert(Ident##_isErr(self));                                                              \
+        ErrType out;                                                                                    \
+        memcpy(&out, self->_, sizeof(ErrType));                                                         \
+        return out;                                                                                     \
+    }                                                                                                   \
     \
-    Err Struct##_expectErr(const struct Struct *const self, const char *const fmt, ...) {                               \
-        assert(NULL != self);                                                                                           \
-        assert(NULL != fmt);                                                                                            \
-        if (__RESULT_ERR_TAG == self->__tag) { return self->__err; }                                                    \
-        else                                 { va_list args; va_start(args, fmt); __vpanic(__TRACE__, fmt, args); }     \
-    }                                                                                                                   \
+    ErrType Ident##_expectErr(const struct Ident *const self, const char *const fmt, ...) {             \
+        assert(NULL != self);                                                                           \
+        assert(NULL != fmt);                                                                            \
+        if (Ident##_isErr(self)) { return Ident##_unwrapErr(self); }                                    \
+        else                     { va_list args; va_start(args, fmt); panic_vabort(TRACE, fmt, args); } \
+    }                                                                                                   \
     \
     static_assert(1, "") /* semi-colon */
 

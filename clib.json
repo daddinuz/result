@@ -1,7 +1,7 @@
 {
   "name": "result",
   "repo": "daddinuz/result",
-  "version": "2.0.0-alpha.4",
+  "version": "2.0.0-alpha.5",
   "license": "MIT",
   "description": "Result type holding a returned value or an error.",
   "keywords": [
@@ -12,10 +12,10 @@
     "sources/result.h"
   ],
   "dependencies": {
-    "daddinuz/panic": "2.0.0"
+    "daddinuz/panic": "3.0.0"
   },
   "development": {
-    "daddinuz/traits": "4.0.1",
-    "daddinuz/traits-unit": "4.0.2"
+    "daddinuz/traits": "4.1.0",
+    "daddinuz/traits-unit": "4.1.0"
   }
 }
